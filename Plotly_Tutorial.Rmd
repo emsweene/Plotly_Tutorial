@@ -1,5 +1,5 @@
 ---
-title: "WCM Biostatistics Computing Club: Plotly Tutorial"
+title: "Plotting the Trail with Plotly"
 author: "Elizabeth Sweeney"
 date: "8/21/2019"
 output: html_document

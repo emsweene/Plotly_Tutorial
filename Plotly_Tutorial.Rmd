@@ -296,7 +296,88 @@ plot_ly(data = devils.path,
 
 ```
 
-          
+A taller mountain may be more interesting to look at canopy percentage versus elevation. Mt. Bierstadt is a 14er in Colorado (elevation of above 14,000 feet!).  Let's look at the data...
+
+
+```{r}
+bierstadt <- read.csv('Bierstadt.csv') 
+knitr::kable(head(bierstadt))
+```
+
+And plot the canopy percentage versus elevation. 
+
+```{r}
+x <- list(
+  title = "Elevation (in feet)"
+)
+
+y <- list(
+  title = "Canopy Percentage"
+)
+
+plot_ly(data = bierstadt,
+        x = ~Elevation..feet.,
+        y = ~Canopy..percent.,
+        hoverinfo = 'text',
+        text = paste(
+          'Canopy Percentage: ', 
+          bierstadt$Canopy..percent., 
+          '%',
+          '\n', 
+          'Elevation: ',                    
+          bierstadt$Elevation..feet.,
+          ' feet \n',
+          'Landcover: ',
+          bierstadt$Landcover),
+        marker = list(
+          color = factor(bierstadt$Landcover,labels=c("brown",
+                                                      "orange",
+                                                      "green",
+                                                      "black",
+                                                      "blue"))  
+          )) %>%
+  layout(xaxis = x, 
+         yaxis = y,
+         title = "Mt. Bierstadt \n Canopy Percentage versus Elevation")
+```
+
+We can jitter the y-values a little to make the plot more attractive. 
+
+```{r}
+x <- list(
+  title = "Elevation (in feet)"
+)
+
+y <- list(
+  title = "Canopy Percentage"
+)
+
+plot_ly(data = bierstadt,
+        x = ~Elevation..feet.,
+        y = ~jitter(Canopy..percent., factor = 10),
+        hoverinfo = 'text',
+        text = paste(
+          'Canopy Percentage: ', 
+          bierstadt$Canopy..percent., 
+          '%',
+          '\n', 
+          'Elevation: ',                    
+          bierstadt$Elevation..feet.,
+          ' feet \n',
+          'Landcover: ',
+          bierstadt$Landcover),
+        marker = list(
+          color = factor(bierstadt$Landcover,labels=c("brown",
+                                                      "orange",
+                                                      "green",
+                                                      "black",
+                                                      "blue"))  
+          )) %>%
+  layout(xaxis = x, 
+         yaxis = y,
+         title = "Mt. Bierstadt \n Canopy Percentage versus Elevation")
+```
+
 
 ## The Map Plot 
 

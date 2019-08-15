@@ -378,6 +378,43 @@ plot_ly(data = bierstadt,
          title = "Mt. Bierstadt \n Canopy Percentage versus Elevation")
 ```
 
+We can make a plot to let us know what to anticipate on the trail! 
+```{r}
+x <- list(
+  title = "Distance (in miles)"
+)
+
+y <- list(
+  title = "Elevation (in feet)"
+)
+
+plot_ly(data = bierstadt,
+        x = ~Distance..miles.,
+        y = ~Elevation..feet.,
+        hoverinfo = 'text',
+        text = paste(
+          'Distnace: ', 
+          bierstadt$Distance..miles., 
+          ' miles',
+          '\n', 
+          'Elevation: ',                    
+          bierstadt$Elevation..feet.,
+          ' feet \n',
+          'Landcover: ',
+          bierstadt$Landcover),
+        marker = list(
+          color = factor(bierstadt$Landcover,labels=c("brown",
+                                                      "orange",
+                                                      "green",
+                                                      "black",
+                                                      "blue"))  
+          )) %>%
+  layout(xaxis = x, 
+         yaxis = y,
+         title = "Mt. Bierstadt")
+```
+
+
 
 ## The Map Plot 
 

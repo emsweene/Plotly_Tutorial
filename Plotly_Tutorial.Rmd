@@ -1,0 +1,511 @@
+---
+title: "WCM Biostatistics Computing Club: Plotly Tutorial"
+author: "Elizabeth Sweeney"
+date: "8/21/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Devil's Path Hiking Data
+
+Today we will be working with data from the Devil's Path, a hiking trail in the Catskill Mountains of New York. It is supposed to be the toughest hike in the Catskills mountains! The data that I accessed is from CalTopo (https://caltopo.com/), a mapping and trip planning tool for the backcountry. If you are a member of CalTopo you can get a .csv of any hiking trail's latitude, longitude, distance, and elevation. I have provided the data from CalTopo in the github repository. 
+
+
+```{r}
+devils.path <- read.csv('Devils_Path.csv') 
+knitr::kable(head(devils.path))
+```
+
+
+
+## What is Plotly? 
+
+* Plotly is an interactive, browser-based charting library built on the open source javascript graphing library, plotly.js. It works entirely locally, through the HTML widgets framework.
+
+* Plotly has interfaces with R, Python, Matlab and Julia
+
+* Plotly plays well with Rmarkdwon! If you are using Rmarkdown with HTML output, printing a plotly object in a code chunk will result in an interactive HTML graph. When using rmarkdown with non-HTML output, printing a plotly object will result in a png screenshot of the graph.
+
+```{r, message = FALSE}
+library(plotly)
+```
+
+
+## Plotly: Our Example 
+
+Here is the plot that we will be working towards making today! 
+
+```{r, echo=FALSE, warning = FALSE, message = FALSE}
+library(crosstalk)
+
+devils.path.sd <- SharedData$new(devils.path)
+
+
+x <- list(
+  title = "Distance (in miles)"
+)
+
+y <- list(
+  title = "Elevation (in feet)"
+)
+
+
+bscols(
+  plot_mapbox(data = devils.path.sd,
+                lat = ~Lat,
+                lon = ~Lng)  %>%
+     layout(mapbox = list(zoom = 9,
+                          style = "outdoors",
+                          center = list(lat = median(devils.path$Lat),
+                                        lon = median(devils.path$Lng)))) %>% 
+    highlight(dynamic = TRUE, persistent = TRUE),
+  plot_ly(devils.path.sd,     
+          x = ~Distance..miles.,
+          y = ~Elevation..feet.,
+          type = 'scatter',
+          hoverinfo = 'text',
+          text = paste(round(devils.path$Distance..miles., 1), 
+                       "miles, ",                   
+                       round(devils.path$Elevation..feet., 0),
+                       "feet elevation"))   %>%
+  layout(xaxis = x, 
+         yaxis = y,
+         title = "The Devil's Path",
+         shapes=list(type='line', 
+                     y0= 3500, 
+                     y1= 3500, 
+                     x0=min(devils.path$Distance..miles.),
+                     x1=max(devils.path$Distance..miles.),
+                     line=list(dash='dot', width=1))) %>% 
+    highlight("plotly_selected", persistent = TRUE)
+)
+```
+
+
+## The Elevation Plot  
+
+Here is a simple plot of the distance on the trail versus the elevation, using the plot_ly function from the plotly package. 
+
+```{r}
+plot_ly(data = devils.path,
+        x = ~Distance..miles.,
+        y = ~Elevation..feet.)
+```
+If you are annoyed by the warning messages you can specify the type and the mode in the plot_ly command (but honestly the command does a pretty good job of figuring out what you are after!)
+
+```{r}
+plot_ly(data = devils.path,
+        x = ~Distance..miles.,
+        y = ~Elevation..feet.,
+        type = 'scatter', 
+        mode = 'markers') 
+```
+
+
+You can change the plot to a line plot by specifying mode = 'lines' instead of mode = 'markers' (the default).  You can also change the color of the line. 
+
+```{r}
+plot_ly(data = devils.path,
+        x = ~Distance..miles.,
+        y = ~Elevation..feet.,
+        type = 'scatter', 
+        mode = 'lines',
+        color = I('purple')) 
+
+```
+
+Changing the axis titles in the plot is a little cumbersome... the title of the plot itself is easier. 
+
+```{r}
+x <- list(
+  title = "Distance (in miles)"
+)
+
+y <- list(
+  title = "Elevation (in feet)"
+)
+
+plot_ly(data = devils.path,
+        x = ~Distance..miles.,
+        y = ~Elevation..feet.,
+        type = 'scatter', 
+        mode = 'lines',
+        color = I('purple')) %>%
+  layout(xaxis = x, 
+         yaxis = y,
+         title = "The Devil's Path")
+
+```
+
+You can also change what the hover on the plot says using 'text' and 'hoverinfo'. 
+
+```{r}
+x <- list(
+  title = "Distance (in miles)"
+)
+
+y <- list(
+  title = "Elevation (in feet)"
+)
+
+plot_ly(data = devils.path,
+        x = ~Distance..miles.,
+        y = ~Elevation..feet.,
+        type = 'scatter', 
+        mode = 'lines',
+        color = I('purple'),
+        hoverinfo = 'text',
+        text = paste(
+          round(devils.path$Distance..miles., 1), 
+          "miles, ",                    
+          round(devils.path$Elevation..feet., 0),
+          "feet elevation")) %>%
+  layout(xaxis = x, 
+         yaxis = y,
+         title = "The Devil's Path")
+
+```
+It's also a big deal for mountain's in the Catskills to be over 3500 feet, so we will draw a horizontal line at 3500 feet on our plot.  We will also fill in the plot and take it all the way down to 0 elevation. 
+
+```{r}
+x <- list(
+  title = "Distance (in miles)"
+)
+
+y <- list(
+  title = "Elevation (in feet)"
+)
+
+plot_ly(data = devils.path,
+        x = ~Distance..miles.,
+        y = ~Elevation..feet.,
+        type = 'scatter', 
+        mode = 'lines',
+        color = I('purple'),
+        hoverinfo = 'text',
+        text = paste(
+          round(devils.path$Distance..miles., 1), 
+          "miles, ",                    
+          round(devils.path$Elevation..feet., 0),
+          "feet elevation"),
+        fill = 'tozeroy')  %>%
+  layout(xaxis = x, 
+         yaxis = y,
+         title = "The Devil's Path",
+         shapes=list(type='line', 
+                     y0= 3500, 
+                     y1= 3500, 
+                     x0=min(devils.path$Distance..miles.),
+                     x1=max(devils.path$Distance..miles.),
+                     line=list(dash='dot', width=1)))
+
+```
+
+## A Digression into Exploring Some of the Other Variables...  
+
+What if we want to take a look at the elevation versus the percent canopy cover? And what exactly is canopy cover? Canopy cover is the percentage of total ground area that is covered by the vertical projection of tree crowns. We would expect the canopy cover to decrease as the elevation increases. 
+
+
+```{r}
+plot_ly(data = devils.path,
+        x = ~Elevation..feet.,
+        y = ~Canopy..percent.)
+```
+
+That is the exact trend that we see! Let's put a title and label the axes of the plot.
+
+```{r}
+x <- list(
+  title = "Elevation (in feet)"
+)
+
+y <- list(
+  title = "Canopy Percentage"
+)
+
+plot_ly(data = devils.path,
+        x = ~Elevation..feet.,
+        y = ~Canopy..percent.) %>%
+  layout(xaxis = x, 
+         yaxis = y,
+         title = "The Devil's Path \n Canopy Percentage versus Elevation")
+```
+
+And let's add color by the type of landcover (most of this is forest so this is not visually very interesting -- but it is good to know how to do it). 
+
+```{r}
+x <- list(
+  title = "Elevation (in feet)"
+)
+
+y <- list(
+  title = "Canopy Percentage"
+)
+
+plot_ly(data = devils.path,
+        x = ~Elevation..feet.,
+        y = ~Canopy..percent.,
+        marker = list(
+          color = factor(devils.path$Landcover,labels=c("brown",
+                                                        "green",
+                                                        "blue"))  
+          )) %>%
+  layout(xaxis = x, 
+         yaxis = y,
+         title = "The Devil's Path \n Canopy Percentage versus Elevation")
+```
+
+
+```{r}
+x <- list(
+  title = "Elevation (in feet)"
+)
+
+y <- list(
+  title = "Canopy Percentage"
+)
+
+plot_ly(data = devils.path,
+        x = ~Elevation..feet.,
+        y = ~Canopy..percent.,
+        hoverinfo = 'text',
+        text = paste(
+          'Canopy Percentage: ', 
+          devils.path$Canopy..percent., 
+          '%',
+          '\n', 
+          'Elevation: ',                    
+          devils.path$Elevation..feet.,
+          ' feet \n',
+          'Landcover: ',
+          devils.path$Landcover),
+        marker = list(
+          color = factor(devils.path$Landcover,labels=c("brown",
+                                                        "green",
+                                                        "blue"))  
+          )) %>%
+  layout(xaxis = x, 
+         yaxis = y,
+         title = "The Devil's Path \n Canopy Percentage versus Elevation")
+
+
+
+
+```
+
+          
+
+## The Map Plot 
+
+```{r, echo = FALSE}
+Sys.setenv('MAPBOX_TOKEN' = 'pk.eyJ1IjoiZW1zd2VlbmUiLCJhIjoiY2p6N2FlNHNoMHJmdTNibWZwaTJ4b25hNCJ9.hdrWHpuK9D85Wk5EQjh-gg') 
+```
+
+We can start by ploting the latitude and longitude of the path. 
+
+```{r}
+plot_ly(data = devils.path,
+        y = ~Lat,
+        x = ~Lng) 
+```
+
+We can even plot this in 3d with plotly (the latitude, longitude and elevation)
+
+
+```{r}
+plot_ly(data = devils.path,
+        y = ~Lat,
+        x = ~Lng,
+        z = ~Elevation..feet.,
+        mode = 'lines') 
+```
+
+It would look a lot better if we had this on a map! One way to do this is using the 'plot_mapbox' function.  To use this function, you first need to make an account on mapbox (https://www.mapbox.com). Once you make an account, click on the dropdown menu in the upper right hand corner, go to 'Account' and then down to 'Access tokens'.  Paste your access token in here: 
+
+```{r, eval = FALSE}
+Sys.setenv('MAPBOX_TOKEN' = 'your access token') 
+```
+
+Now we can plot the latitude and longitude of the trail on a map from mapbox. 
+
+```{r}
+plot_mapbox(data = devils.path,
+            lat = ~Lat,
+            lon = ~Lng) %>%
+  layout(mapbox = list(zoom = 9,
+                       center = list(lat = median(devils.path$Lat),
+                                     lon = median(devils.path$Lng))))
+```
+
+And we can change the style of the map to 'outdoors'. 
+```{r}
+plot_mapbox(data = devils.path,
+            lat = ~Lat,
+            lon = ~Lng) %>%
+  layout(mapbox = list(zoom = 9,
+                       style = "outdoors",
+                       center = list(lat = median(devils.path$Lat),
+                                     lon = median(devils.path$Lng))))
+```
+
+Or we can chance the style of the map to 'satellite-streets'.
+
+```{r}
+plot_mapbox(data = devils.path,
+            lat = ~Lat,
+            lon = ~Lng) %>%
+  layout(mapbox = list(zoom = 9,
+                       style = "satellite-streets",
+                       center = list(lat = median(devils.path$Lat),
+                                     lon = median(devils.path$Lng))))
+```
+##Putting Everything Together with Cross Talk 
+
+Now we are ready to plot the elevation plot and the map plot together.  We will use the 'crosstalk' R package. Crosstalk is an add-on to the htmlwidgets package. It extends htmlwidgets with a set of classes, functions, and conventions for implementing cross-widget interactions. 
+
+We will start with the function 'SharedData'. The primary use for SharedData is to be passed to crosstalk-compatible widgets in place of a data frame. Each SharedData$new(...) call makes a new "group" of widgets that link to each other, but not to widgets in other groups.
+
+
+```{r, message = FALSE}
+library(crosstalk)
+
+devils.path.sd <- SharedData$new(devils.path)
+
+
+x <- list(
+  title = "Distance (in miles)"
+)
+
+y <- list(
+  title = "Elevation (in feet)"
+)
+
+
+bscols(
+  plot_mapbox(data = devils.path.sd,
+                lat = ~Lat,
+                lon = ~Lng)  %>%
+     layout(mapbox = list(zoom = 9,
+                          style = "outdoors",
+                          center = list(lat = median(devils.path$Lat),
+                                        lon = median(devils.path$Lng)))) %>% 
+    highlight(dynamic = TRUE, persistent = TRUE),
+  plot_ly(devils.path.sd,     
+          x = ~Distance..miles.,
+          y = ~Elevation..feet.,
+          type = 'scatter',
+          hoverinfo = 'text',
+          text = paste(round(devils.path$Distance..miles., 1), 
+                       "miles, ",                   
+                       round(devils.path$Elevation..feet., 0),
+                       "feet elevation"))   %>%
+  layout(xaxis = x, 
+         yaxis = y,
+         title = "The Devil's Path",
+         shapes=list(type='line', 
+                     y0= 3500, 
+                     y1= 3500, 
+                     x0=min(devils.path$Distance..miles.),
+                     x1=max(devils.path$Distance..miles.),
+                     line=list(dash='dot', width=1))) %>% 
+    highlight("plotly_selected", persistent = TRUE)
+)
+```
+
+
+
+## The Big Bushwack
+
+```{r}
+big.bushwack <- read.csv('Big_Bushwack.csv') 
+knitr::kable(head(devils.path))
+```
+```{r, message = FALSE}
+big.bushwack.sd <- SharedData$new(big.bushwack)
+
+
+x <- list(
+  title = "Distance (in miles)"
+)
+
+y <- list(
+  title = "Elevation (in feet)"
+)
+
+
+bscols(
+  plot_mapbox(data = big.bushwack.sd,
+                lat = ~Lat,
+                lon = ~Lng)  %>%
+     layout(mapbox = list(zoom = 9,
+                          style = "outdoors",
+                          center = list(lat = median(big.bushwack$Lat),
+                                        lon = median(big.bushwack$Lng)))) %>% 
+    highlight(dynamic = TRUE, persistent = TRUE),
+  plot_ly(big.bushwack.sd,     
+          x = ~Distance..miles.,
+          y = ~Elevation..feet.,
+          type = 'scatter',
+          hoverinfo = 'text',
+          text = paste(round(big.bushwack$Distance..miles., 1), 
+                       "miles, ",                   
+                       round(big.bushwack$Elevation..feet., 0),
+                       "feet elevation"))   %>%
+  layout(xaxis = x, 
+         yaxis = y,
+         title = "The Big Bushwack",
+         shapes=list(type='line', 
+                     y0= 3500, 
+                     y1= 3500, 
+                     x0=min(big.bushwack$Distance..miles.),
+                     x1=max(big.bushwack$Distance..miles.),
+                     line=list(dash='dot', width=1))) %>% 
+    highlight("plotly_selected", persistent = TRUE)
+)
+
+```
+
+We can also make a 3d plot of the Big Bushwack. 
+
+```{r}
+plot_ly(data = big.bushwack,
+        y = ~Lat,
+        x = ~Lng,
+        z = ~Elevation..feet.,
+        mode = 'lines') 
+```
+
+## Plotly and ggplot 
+
+```{r}
+big.bushwack$trail <- 'Bushwack'
+devils.path$trail <- 'Devil'
+trail.data <- rbind(devils.path, big.bushwack)
+```
+
+```{r}
+library(ggplot2)
+
+g <- ggplot(trail.data, 
+       aes(x = Distance..miles.,
+           y = Elevation..feet.,
+           color = trail)) + 
+  ylab('Elevation (in feet)') + 
+  xlab('Distance (in miles)') + 
+  ggtitle("The Devil's Path and The Big Bushwack") + 
+  geom_line() + 
+  theme(legend.title = element_blank())
+
+g
+```
+
+```{r}
+ggplotly(g)
+```
+
+## Your Turn! 
+
+Checkout the 'Slide.csv' or the 'Bierstadt.csv' files and make your own interactive plots of Slide Mountain (Catskills, NY) or Mount Bierstadt (Rocky Mountains, CO).  Or ask me to download your favorite trail from Caltopo. 
